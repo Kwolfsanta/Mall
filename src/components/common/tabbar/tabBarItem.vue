@@ -43,11 +43,13 @@ methods:{
   flex:1;
   text-align: center;
   height: 49px;
+  font-size: 12px;
 }
 
 .tab-bar-item img{
   width: 22px;
   height: 22px;
+  margin-bottom:2px;
 }
 
 /* 一种方法 */
