@@ -12,13 +12,13 @@ export default {
   props:{
     probeType:{
       type:Number,
-      default:3
+      default:0
     },
     click:{
       type:Boolean,
       default:true
     },
-    pullingUp:{
+    pullUpLoad:{
       type:Boolean,
       default:true
     }
@@ -32,15 +32,27 @@ mounted(){
   this.scroll = new BScroll(this.$refs.wrapper, {
     probeType:this.probeType,
     click:this.click,
-    pullingUp:this.pullingUp
+    pullUpLoad:this.pullUpLoad
   })
   this.scroll.on('scroll', (position) => {
     // console.log(position);
+
+    //这个用来做backTop也可以的哦
+    this.$emit('scroll', position)
+  })
+  this.scroll.on('pullingUp', () => {
+    this.$emit('pullingUp')
   })
 },
 methods:{
   scrollTo(x, y, time){
     this.scroll.scrollTo(x, y, time);
+  },
+  finishPullUp(){
+    this.scroll.finishPullUp();
+  },
+  refresh() {
+    this.scroll.refresh();
   }
 }
 }

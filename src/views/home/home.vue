@@ -3,14 +3,21 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <scroll class="scroll" ref="scroll" :probyType="3" @scroll.native="scrollView">
+    <scroll
+      class="scroll"
+      ref="scroll"
+      :probe-type="3"
+      @scroll="scrollScroll"
+      :pull-up-load="true"
+      @pullingUp="loadMore"
+    >
       <main-swiper :banners="banners"></main-swiper>
       <recommend-view :recommend="recommends"></recommend-view>
       <feature-view></feature-view>
       <tab-control :titles="['流行', '新款', '精选']" @tabClick="tabClick" class="tab-control"></tab-control>
       <goods-list :goods-list="showGoods"></goods-list>
     </scroll>
-    <back-top class="back-top" @click.native="backTop"></back-top>
+    <back-top class="back-top" @click.native="backTop" v-show="isShowBackTop"></back-top>
     <ul>
       <li v-for="item in this.banners">
         <a :href="item.link">
@@ -48,7 +55,8 @@ export default {
         new: { page: 0, list: [] },
         sell: { page: 0, list: [] }
       },
-      currentType: "pop"
+      currentType: "pop",
+      isShowBackTop: false
     };
   },
   components: {
@@ -75,8 +83,8 @@ export default {
     this.getHomeGoods("sell");
   },
   mounted() {
-    //显示backTop
-    this.showBackTop();
+    //显示backTop，自己的方法
+    // this.showBackTop();
   },
   methods: {
     /**
@@ -99,20 +107,33 @@ export default {
     },
     //回到顶部
     backTop() {
-      this.$refs.scroll.scrollTo(0, 0, 500);
+      this.$refs.scroll.scrollTo(0, 0, 300);
+      // this.backTop.style.display ="none"
     },
-    //显示backTop
-    showBackTop() {
-      let backTop = document.querySelector('.back-top');
-      this.$refs.scroll.scroll.on("scroll", position => {
-        if (position.y < -552) {
-          backTop.style.display = "block"
-        }
-        else{
-          backTop.style.display = 'none'
-        }
-      });
+
+    // 显示backTop
+    scrollScroll(position) {
+      // console.log(position);
+      this.isShowBackTop = Math.abs(position.y) > 700;
     },
+
+    loadMore(){
+      this.getHomeGoods(this.currentType);
+      this.$refs.scroll.finishPullUp();
+    },
+
+    //显示backTop 自己的方法
+    // showBackTop() {
+    //   let backTop = document.querySelector('.back-top');
+    //   this.$refs.scroll.scroll.on("scroll", position => {
+    //     if (position.y < -552) {
+    //       backTop.style.display = "block"
+    //     }
+    //     else{
+    //       backTop.style.display = 'none'
+    //     }
+    //   });
+    // },
 
     /**
      * 网络控制
@@ -128,6 +149,7 @@ export default {
       getHomeGoods(type, page)
         .then(res => {
           this.goods[type].list.push(...res.data.list);
+          this.$refs.scroll.refresh();
         })
         .catch(err => {
           console.log(err);
@@ -180,6 +202,5 @@ ul li img {
   position: absolute;
   top: 480px;
   right: 5px;
-  display: none;
 }
 </style>
