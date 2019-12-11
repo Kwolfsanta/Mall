@@ -21,6 +21,7 @@ export default {
   methods: {
     tabConClick(index) {
       this.currentIndex = index;
+      this.$emit('tabClick', index);
     }
   }
 };
@@ -33,8 +34,6 @@ export default {
   height: 40px;
   line-height: 40px;
   text-align: center;
-  position: sticky;
-  top:44px;
   background-color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .2)
 }

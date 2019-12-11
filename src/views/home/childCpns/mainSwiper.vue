@@ -16,7 +16,6 @@ export default {
   props:{
     banners:{
       type:Array,
-      required:true
     }
   },
 components:{
