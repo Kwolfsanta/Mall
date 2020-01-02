@@ -50,6 +50,7 @@ methods:{
   width: 22px;
   height: 22px;
   margin-bottom:2px;
+  margin-top:5px;
 }
 
 /* 一种方法 */

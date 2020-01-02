@@ -3,6 +3,13 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
+    <tab-control
+      :titles="['流行', '新款', '精选']"
+      @tabClick="tabClick"
+      class="tab-control"
+      ref="tabControl2"
+      v-show="isTabShow"
+    ></tab-control>
     <scroll
       class="scroll"
       ref="scroll"
@@ -11,13 +18,14 @@
       :pull-up-load="true"
       @pullingUp="loadMore"
     >
-      <main-swiper :banners="banners"></main-swiper>
+      <main-swiper :banners="banners" @imgLoad="imageLoad"></main-swiper>
       <recommend-view :recommend="recommends"></recommend-view>
       <feature-view></feature-view>
-      <tab-control :titles="['流行', '新款', '精选']" @tabClick="tabClick" class="tab-control"></tab-control>
+      <tab-control :titles="['流行', '新款', '精选']" @tabClick="tabClick" ref="tabControl1"></tab-control>
       <goods-list :goods-list="showGoods"></goods-list>
     </scroll>
     <back-top class="back-top" @click.native="backTop" v-show="isShowBackTop"></back-top>
+
     <ul>
       <li v-for="item in this.banners">
         <a :href="item.link">
@@ -56,7 +64,10 @@ export default {
         sell: { page: 0, list: [] }
       },
       currentType: "pop",
-      isShowBackTop: false
+      isShowBackTop: false,
+      tabConTop: 0,
+      isTabShow: false,
+      saveY:0,
     };
   },
   components: {
@@ -72,7 +83,8 @@ export default {
   computed: {
     showGoods() {
       return this.goods[this.currentType].list;
-    }
+    },
+
   },
   created() {
     // 1.获取navbar信息啥的
@@ -85,11 +97,35 @@ export default {
   mounted() {
     //显示backTop，自己的方法
     // this.showBackTop();
+    //老师解决scrollHeight载入bug方法
+    // const refresh = this.debounce(this.$refs.scroll.refresh, 200);
+    // this.$bus.$on('imageLoad', () => {
+    //   refresh();
+    // })
+  },
+  activated(){
+    this.$refs.scroll.scrollTo(0, this.saveY, 0);
+    this.$refs.scroll.refresh();
+  },
+  deactivated(){
+    this.saveY = this.$refs.scroll.scroll.y;
   },
   methods: {
     /**
      * 弄下别的
      */
+    //防抖
+    debounce(func, delay) {
+      let timer = null;
+      return function(...args) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
+    },
+
+    //更改currentType
     tabClick(index) {
       switch (index) {
         case 0:
@@ -104,6 +140,12 @@ export default {
         default:
           break;
       }
+          this.$refs.tabControl2.currentIndex = index;
+          this.$refs.tabControl1.currentIndex = index;
+    },
+    imageLoad(){
+      this.tabConTop = this.$refs.tabControl1.$el.offsetTop;
+      console.log(this.tabConTop);
     },
     //回到顶部
     backTop() {
@@ -115,12 +157,18 @@ export default {
     scrollScroll(position) {
       // console.log(position);
       this.isShowBackTop = Math.abs(position.y) > 700;
+      this.isTabShow = Math.abs(position.y) > this.tabConTop;
     },
 
-    loadMore(){
+    loadMore() {
       this.getHomeGoods(this.currentType);
       this.$refs.scroll.finishPullUp();
     },
+
+    /**
+     * 子组件发来的问候
+     */
+    imgLoad() {},
 
     //显示backTop 自己的方法
     // showBackTop() {
@@ -149,6 +197,8 @@ export default {
       getHomeGoods(type, page)
         .then(res => {
           this.goods[type].list.push(...res.data.list);
+
+          //我自己的解决scrollHeight加载不正确的方法
           this.$refs.scroll.refresh();
         })
         .catch(err => {
@@ -163,7 +213,7 @@ export default {
 #home {
   padding-top: 44px;
   height: 100vh;
-  /* width: 100vw; */
+  width: 100vw;
   position: relative;
 }
 .home-nav {
@@ -176,8 +226,8 @@ export default {
   z-index: 9;
 }
 .tab-control {
-  position: sticky;
-  top: 44px;
+  position: relative;
+  z-index: 9;
 }
 .scroll {
   overflow: hidden;
